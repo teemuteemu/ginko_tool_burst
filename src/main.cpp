@@ -32,12 +32,9 @@
 
 #define TIMER_MIN 20 // 500hz / 20 => 25hz = 0.04s
 #define TIMER_MAX 500 // 500hz / 500 => 1hz = 1s
-#define MOD_B_MIN 1
-#define MOD_B_MAX 10
+#define MOD_B_MIN -15
+#define MOD_B_MAX 15
 
-enum State { OFF, ON };
-
-State state;
 boolean prevTrigger;
 boolean currentTrigger;
 boolean prevButtonA;
@@ -45,7 +42,7 @@ boolean currentButtonA;
 volatile uint16_t burstCounter;
 volatile uint16_t burstVal;
 uint16_t modAVal;
-uint16_t modBVal;
+int16_t modBVal;
 
 void output(uint16_t value) {
   byte data;                              //spi deals in bytes (8 bits) chunks
@@ -79,7 +76,6 @@ void setup() {
   Serial.begin(9600);
   Serial.println("setup");
 
-  state = OFF;
   prevTrigger = false;
   currentTrigger = false;
   prevButtonA = false;
@@ -113,8 +109,7 @@ void loop() {
   currentTrigger = !digitalRead(TRIGGER_PIN);
   currentButtonA = !digitalRead(BUT_A_PIN);
 
-  if ((prevTrigger == 0 && currentTrigger == 1) || (prevButtonA == 1 && currentButtonA == 1)) {
-    state = ON;
+  if ((prevTrigger == 0 && currentTrigger == 1) || (prevButtonA == 0 && currentButtonA == 1)) {
     burstCounter = 0;
     burstVal = modAVal;
     outputTrigger();
@@ -127,6 +122,7 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   if (++burstCounter >= burstVal) {
     burstCounter = 0;
+    burstVal = burstVal - modBVal;
     outputTrigger();
   }
 }
