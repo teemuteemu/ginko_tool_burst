@@ -30,8 +30,8 @@
 #define LED_B_PIN 5
 #define SPI_SS_PIN 10
 
-#define TIMER_MIN 20 // 500hz / 20 => 25hz = 0.04s
-#define TIMER_MAX 500 // 500hz / 500 => 1hz = 1s
+#define TIMER_MIN 10 // 1000hz / 10 => 100hz = 0.01s
+#define TIMER_MAX 1000 // 1000hz / 1000 => 1hz = 1s
 #define MOD_B_MIN -15
 #define MOD_B_MAX 15
 
@@ -89,10 +89,14 @@ void setup() {
   TCCR1B = 0;
   TCNT1 = 0;
 
-  OCR1A = 124;          // 500 Hz (16000000/((124+1)*256))
-  TCCR1B |= (1 << WGM12); // CTC
-  TCCR1B |= (1 << CS12); // Prescaler 256
-  TIMSK1 |= B00000010;  // Enable Timer COMPA Interrupt
+  // 1000 Hz (16000000/((249+1)*64))
+  OCR1A = 249;
+  // CTC
+  TCCR1B |= (1 << WGM12);
+  // Prescaler 64
+  TCCR1B |= (1 << CS11) | (1 << CS10);
+  // Output Compare Match A Interrupt Enable
+  TIMSK1 |= (1 << OCIE1A);
 	sei();							//re-enable global interupts
 
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
